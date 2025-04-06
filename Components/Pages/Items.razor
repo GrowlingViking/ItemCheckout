@@ -1,0 +1,20 @@
+@page "/Items"
+@using ItemCheckout.Data.Entities
+@using ItemCheckout.Data
+@using Microsoft.EntityFrameworkCore
+@inject DataContext DataContext
+
+<h3>Items</h3>
+
+<h4></h4>
+
+@code {
+    private List<NamedItem> items = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = await DataContext.NamedItems.ToListAsync();
+    }
+    
+    
+}
