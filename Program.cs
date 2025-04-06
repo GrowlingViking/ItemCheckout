@@ -1,5 +1,6 @@
 using ItemCheckout.Components;
 using ItemCheckout.Data;
+using ItemCheckout.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -14,6 +15,8 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IItemCheckoutService, ItemCheckoutService>();
 
 var app = builder.Build();
 

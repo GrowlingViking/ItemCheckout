@@ -1,8 +1,7 @@
 @page "/Items"
 @using ItemCheckout.Data.Entities
-@using ItemCheckout.Data
-@using Microsoft.EntityFrameworkCore
-@inject DataContext DataContext
+@using ItemCheckout.Services
+@inject IItemCheckoutService ItemCheckoutService
 
 <h3>Items</h3>
 
@@ -13,7 +12,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        items = await DataContext.NamedItems.ToListAsync();
+        items = await ItemCheckoutService.GetNamedItemsAsync();
     }
     
     

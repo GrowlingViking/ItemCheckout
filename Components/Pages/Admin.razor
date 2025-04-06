@@ -1,6 +1,51 @@
 @page "/Admin"
+@using ItemCheckout.Data.Entities
+@using ItemCheckout.Services
+@inject IItemCheckoutService ItemCheckoutService;
+
 <h3>Admin</h3>
 
-@code {
+<h4>Create new Named Item</h4>
+<EditForm Model="@newItem" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
     
+    <div class="mb-3">
+        <label for="name">Item Name:</label>
+        <InputText class="form-control" id="name" @bind-Value="newItem.Name" />
+    </div>
+    
+    <div class="mb-3">
+        <label for="type">Item Type:</label>
+        <InputSelect TValue="@NamedItemType" class="form-control" id="type" @bind-Value="newItem.ItemType">
+            @foreach (var type in Enum.GetValues<NamedItemType>())
+            {
+                <option value="@type">@type</option>
+            }
+        </InputSelect>
+    </div>
+    
+    <button class="btn btn-primary">Submit</button>
+</EditForm>
+
+@code {
+    private List<NamedItem> namedItems = [];
+    private List<Item> items = [];
+    private NamedItem newItem = new NamedItem
+    {
+        Name = "",
+        ItemType = NamedItemType.Headlamp,
+        Status = NamedItemStatus.CheckedIn,
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        namedItems = await ItemCheckoutService.GetNamedItemsAsync();
+        items = await ItemCheckoutService.GetItemsAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        
+    }
 }
