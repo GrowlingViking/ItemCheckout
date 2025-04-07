@@ -7,6 +7,7 @@ public class NamedItem
 {
     [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
+    [Required]
     public string Name { get; set; }
     public NamedItemType ItemType { get; set; }
     public NamedItemStatus Status { get; set; }
