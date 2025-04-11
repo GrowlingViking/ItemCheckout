@@ -2,9 +2,31 @@
 @using ItemCheckout.Data.Entities
 @using ItemCheckout.Services
 @rendermode InteractiveServer
+@inject NavigationManager Navigation;
 @inject IItemCheckoutService ItemCheckoutService;
 
 <h3>Admin</h3>
+
+<h4>Named Items</h4>
+
+@if (!namedItems.Any())
+{
+    <p><em>Loading Named Items...</em></p>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var namedItem in namedItems)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center"
+                style="cursor: pointer;"
+                @onclick="@(() => NavigateToEdit(namedItem.Id))">
+                <span>(@namedItem.ItemType)  @namedItem.Name</span>
+                <span class="badge bg-primary">Edit</span>
+            </li>
+        }
+    </ul>
+}
 
 <h4>Create new Named Item</h4>
 <EditForm Model="@newItem" OnValidSubmit="@HandleValidSubmit" FormName="CreateNamedItem" Enhance>
@@ -79,5 +101,10 @@
             SuccessMessage = null;
             ErrorMessage = $"Something went wrong: {e.Message}";
         }
+    }
+
+    private void NavigateToEdit(int namedItemId)
+    {
+        Navigation.NavigateTo($"/admin/named-item/{namedItemId}");
     }
 }
