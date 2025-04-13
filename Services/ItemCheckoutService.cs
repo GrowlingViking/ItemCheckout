@@ -8,26 +8,34 @@ public interface IItemCheckoutService
 {
     Task<List<NamedItem>> GetNamedItemsAsync();
     Task<List<Item>> GetItemsAsync();
+    Task<NamedItem> GetNamedItemAsync(int namedItemId);
     Task<NamedItem> CreateNamedItem(NamedItem namedItem);
+    Task DeleteNamedItem(int namedItemId);
+    Task<NamedItem> UpdateNamedItem(NamedItem updatedNamedItem);
 }
 
-public class ItemCheckoutService: IItemCheckoutService
+public class ItemCheckoutService(DataContext dataContext) : IItemCheckoutService
 {
-    private readonly DataContext _dataContext;
-
-    public ItemCheckoutService(DataContext dataContext)
-    {
-        _dataContext = dataContext;
-    }
-
     public async Task<List<NamedItem>> GetNamedItemsAsync()
     {
-        return await _dataContext.NamedItems.ToListAsync();
+        return await dataContext.NamedItems.ToListAsync();
     }
 
     public async Task<List<Item>> GetItemsAsync()
     {
-        return await _dataContext.Items.ToListAsync();
+        return await dataContext.Items.ToListAsync();
+    }
+
+    public async Task<NamedItem> GetNamedItemAsync(int namedItemId)
+    {
+        var namedItem = await dataContext.FindAsync<NamedItem>(namedItemId);
+
+        if (namedItem == null)
+        {
+            throw new ArgumentException("Named Item not found");
+        }
+        
+        return namedItem;
     }
 
     public async Task<NamedItem> CreateNamedItem(NamedItem namedItem)
@@ -41,10 +49,46 @@ public class ItemCheckoutService: IItemCheckoutService
         namedItem.LastCheckedPerson = "";
         namedItem.LastCheckedOut = new DateTimeOffset();
 
-        var result = await _dataContext.NamedItems.AddAsync(namedItem);
+        var result = await dataContext.NamedItems.AddAsync(namedItem);
 
-       await  _dataContext.SaveChangesAsync();
+        await  dataContext.SaveChangesAsync();
 
         return result.Entity;
+    }
+
+    public async Task<NamedItem> UpdateNamedItem(NamedItem updatedNamedItem)
+    {
+        if (updatedNamedItem.Id == 0)
+        {
+            throw new ArgumentException("Named Item Id cannot be 0");
+        }
+
+        var dbNamedItem = await dataContext.FindAsync<NamedItem>(updatedNamedItem.Id);
+
+        if (dbNamedItem == null)
+        {
+            throw new ArgumentException("Named Item not found");
+        }
+        
+        dbNamedItem.Name = updatedNamedItem.Name;
+        dbNamedItem.Status = updatedNamedItem.Status;
+        dbNamedItem.ItemType = updatedNamedItem.ItemType;
+
+        dbNamedItem = dataContext.Update(dbNamedItem).Entity;
+
+        return dbNamedItem;
+    }
+
+    public async Task DeleteNamedItem(int namedItemId)
+    {
+        var item = await dataContext.NamedItems.FindAsync(namedItemId);
+
+        if (item == null)
+        {
+            throw new ArgumentException("Named Item not found");
+        }
+
+        dataContext.NamedItems.Remove(item);
+        await dataContext.SaveChangesAsync();
     }
 }

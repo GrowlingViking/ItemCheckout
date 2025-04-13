@@ -1,64 +1,109 @@
-@page "/Admin"
+@page "/admin"
 @using ItemCheckout.Data.Entities
 @using ItemCheckout.Services
 @rendermode InteractiveServer
 @inject NavigationManager Navigation;
 @inject IItemCheckoutService ItemCheckoutService;
 
-<h3>Admin</h3>
+<div class="d-flex flex-column vh-100">
+    <PageTitle>Admin</PageTitle>
 
-<h4>Named Items</h4>
+    @*<div class="flex-grow-1 overflow-auto py-3">
+        <h4>Named Items</h4>
 
-@if (!namedItems.Any())
-{
-    <p><em>Loading Named Items...</em></p>
-}
-else
-{
-    <ul class="list-group">
-        @foreach (var namedItem in namedItems)
+        @if (!namedItems.Any())
         {
-            <li class="list-group-item d-flex justify-content-between align-items-center"
-                style="cursor: pointer;"
-                @onclick="@(() => NavigateToEdit(namedItem.Id))">
-                <span>(@namedItem.ItemType)  @namedItem.Name</span>
-                <span class="badge bg-primary">Edit</span>
-            </li>
+            <p>
+                <em>Loading Named Items...</em>
+            </p>
         }
-    </ul>
-}
-
-<h4>Create new Named Item</h4>
-<EditForm Model="@newItem" OnValidSubmit="@HandleValidSubmit" FormName="CreateNamedItem" Enhance>
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+        else
+        {
+            <ul class="list-group">
+                @foreach (var namedItem in namedItems)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>(@namedItem.ItemType) @namedItem.Name</span>
+                        <div class="btn-group" role="group" aria-label="Item actions">
+                            <button class="btn btn-sm btn-outline-primary" @onclick="@(() => NavigateToEdit(namedItem.Id))">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="@(() => DeleteItem(namedItem.Id))">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </div>*@
     
-    <div class="mb-3">
-        <label for="name">Item Name:</label>
-        <InputText @bind-Value="newItem.Name" class="form-control" id="name" />
-    </div>
-    
-    <div class="mb-3">
-        <label for="type">Item Type:</label>
-        <InputSelect @bind-Value="newItem.ItemType" TValue="@NamedItemType" class="form-control" id="type" >
-            @foreach (var type in Enum.GetValues<NamedItemType>())
+    <div class="flex-grow-1 py-3">
+        @foreach (var type in Enum.GetValues<NamedItemType>())
+        {
+            <h4>@type</h4>
+            @if (!namedItems.Any(x => x.ItemType == type))
             {
-                <option value="@type">@type</option>
+                <p>
+                    <em>No items with type @type</em>
+                </p>
             }
-        </InputSelect>
+            else
+            {
+                <ul class="list-group pb-3">
+                    @foreach (var namedItem in namedItems.Where(x => x.ItemType == type))
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><b>@namedItem.Name</b></span>
+                            <div class="btn-group" role="group" aria-label="Item actions">
+                                <button class="btn btn-sm btn-outline-primary" @onclick="@(() => NavigateToEdit(namedItem.Id))">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="@(() => DeleteItem(namedItem.Id))">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            } 
+        }
     </div>
-    
-    <button type="submit" class="btn btn-primary">Add Named Item</button>
-</EditForm>
 
-@if (SuccessMessage != null)
-{
-    <div class="alert alert-success mt-3">@SuccessMessage</div>
-}
-@if (ErrorMessage != null)
-{
-    <div class="alert alert-danger mt-3">@ErrorMessage</div>
-}
+    <div class="bg-light border-top py-3">
+        <h4>Create new Named Item</h4>
+        <EditForm Model="@newItem" OnValidSubmit="@HandleSubmitNewNamedItem" FormName="CreateNamedItem" Enhance>
+            <DataAnnotationsValidator/>
+            <ValidationSummary/>
+
+            <div class="mb-3">
+                <label for="name">Item Name:</label>
+                <InputText @bind-Value="newItem.Name" class="form-control" id="name"/>
+            </div>
+
+            <div class="mb-3">
+                <label for="type">Item Type:</label>
+                <InputSelect @bind-Value="newItem.ItemType" TValue="@NamedItemType" class="form-control" id="type">
+                    @foreach (var type in Enum.GetValues<NamedItemType>())
+                    {
+                        <option value="@type">@type</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Add Named Item</button>
+        </EditForm>
+
+        @if (SuccessMessage != null)
+        {
+            <div class="alert alert-success mt-3">@SuccessMessage</div>
+        }
+        @if (ErrorMessage != null)
+        {
+            <div class="alert alert-danger mt-3">@ErrorMessage</div>
+        }
+    </div>
+</div>
 
 @code {
     private List<NamedItem> namedItems = [];
@@ -80,7 +125,7 @@ else
         await base.OnInitializedAsync();
     }
 
-    private async Task HandleValidSubmit()
+    private async Task HandleSubmitNewNamedItem()
     {
         try
         {
@@ -94,7 +139,14 @@ else
 
             SuccessMessage = "Named Item added successfully!";
             ErrorMessage = null;
-            newItem = new NamedItem();
+
+            newItem = new NamedItem
+            {
+                Name = "",
+                ItemType = NamedItemType.Headlamp,
+            };
+
+            namedItems = await ItemCheckoutService.GetNamedItemsAsync();
         }
         catch (Exception e)
         {
@@ -106,5 +158,11 @@ else
     private void NavigateToEdit(int namedItemId)
     {
         Navigation.NavigateTo($"/admin/named-item/{namedItemId}");
+    }
+
+    private async Task DeleteItem(int namedItemId)
+    {
+        await ItemCheckoutService.DeleteNamedItem(namedItemId);
+        namedItems = await ItemCheckoutService.GetNamedItemsAsync();
     }
 }
