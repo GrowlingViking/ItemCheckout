@@ -9,5 +9,4 @@ public class DataContext(DbContextOptions<DataContext> options) : IdentityDbCont
     public DbSet<Item> Items { get; set; }
     public DbSet<NamedItem> NamedItems { get; set; }
     public DbSet<HistoryLog> HistoryLogs { get; set; }
-    public DbSet<User> Users { get; set; }
 }

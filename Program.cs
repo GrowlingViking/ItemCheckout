@@ -1,5 +1,6 @@
 using ItemCheckout.Components;
 using ItemCheckout.Data;
+using ItemCheckout.Data.Entities;
 using ItemCheckout.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,7 @@ builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add Identity
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<DataContext>();
 
 builder.Services.AddScoped<IItemCheckoutService, ItemCheckoutService>();

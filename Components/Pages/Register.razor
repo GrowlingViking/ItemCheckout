@@ -1,0 +1,99 @@
+@page "/register"
+@using ItemCheckout.Data.Entities
+@using Microsoft.AspNetCore.Identity;
+@rendermode InteractiveServer
+@inject UserManager<User> UserManager
+
+<PageTitle>Register</PageTitle>
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-6 offset-lg-3">
+            <h3>Register</h3>
+
+            <EditForm Model="newUser" OnValidSubmit="RegisterUser" FormName="RegistrationForm" Enhance>
+
+                <div class="form-group mb-3">
+                    <label for="name">Name</label>
+                    <InputText @bind-Value="newUser!.name" class="form-control" placeholder="Name" id="name"/>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="email">Email</label>
+                    <InputText @bind-Value="newUser!.email" class="form-control" placeholder="Email" id="email"/>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="username">UserName</label>
+                    <InputText @bind-Value="newUser!.username" class="form-control" placeholder="Username" id="username"/>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="affiliation">Affiliation</label>
+                    <InputText @bind-Value="newUser!.affiliation" class="form-control" placeholder="Affiliation" id="affiliation"/>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="password">Password</label>
+                    <InputText @bind-Value="newUser!.password" type="password" class="form-control" id="password"/>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Register</button>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@if (_showSuccess)
+{
+    <p class="alert alert-success mt-3">Registration was successful!</p>
+}
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger mt-3">
+        An error occured: @_error
+    </div>
+}
+
+@code {
+    private NewUserInput newUser = new();
+    private bool _showSuccess = false;
+    private string _error = string.Empty;
+    
+    private async Task RegisterUser()
+    {
+        try
+        {
+            var userDTO = new User
+            {
+                Name = newUser.name,
+                Email = newUser.email,
+                UserName = newUser.username,
+                Affiliation = newUser.affiliation
+            };
+            var result = await UserManager.CreateAsync(userDTO, newUser.password);
+            if (result.Succeeded)
+            {
+                _showSuccess = true;
+            }
+            else
+            {
+                _error = result.Errors.First().Description;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.Write(e.Message);
+        }
+    }
+
+    public class NewUserInput
+    {
+        public string? name { get; set; }
+        public string? email { get; set; }
+        public string? username { get; set; }
+        public string? affiliation { get; set; }
+        public string? password { get; set; }
+    }
+}
